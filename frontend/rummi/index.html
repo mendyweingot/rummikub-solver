@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rummikub Placemat</title>
+<link rel="stylesheet" href="styles/playarea.css">
+<link rel="stylesheet" href="styles/rack.css">
+<link rel="stylesheet" href="styles/tilecreation.css">
+<style> 
+  /* ===== TILE IMAGES ===== */
+  .tile-img {
+    width: 100%; /* prevent overflow */
+    height: 100%;
+    border-radius: 6px;
+    cursor: grab;
+    transition: transform 0.1s;
+  }
+
+  .tile-img:active {
+    transform: scale(1.1);
+    cursor: grabbing;
+  }
+
+  /* ===== DRAG PREVIEW ===== */
+  .drag-preview {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translate(-50%, -50%);
+    height: 16vh;
+    width: 6vw;
+  }
+
+  #buttonarea {
+    height: 27vh;
+    width: 10vw;
+    margin-top: 1%;
+    border: 2px solid darkgray;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5vh;
+    box-sizing: border-box;
+    color: white;
+    background-image: url('images/rack.png'); /* placemat image */
+    background-size: cover; /* make it fit nicely */
+    background-repeat: no-repeat; /* no repeat */
+    background-position: center; /* center image */
+  }
+
+  button {
+  }
+
+  #overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9997;
+    display: none; /* hidden by default */
+  }
+
+  #overlay.verifytiles {
+    display: block;
+  }
+
+  /* Active overlay visible */
+  #overlay.choosetile {
+    display: block;
+    background-color: rgba(0, 0, 0, 0.5); /* semi-transparent dark layer */
+    pointer-events: all;
+  }
+  /* But make holes for .tile-img inside .rack-cell */
+  body.choosetile .rack-cell .tile-img {
+    position: relative;
+    z-index: 9998; /* above overlay */
+    pointer-events: auto; /* clickable */
+    filter: brightness(1.5);
+  }
+
+  body.choosetile #tilesltn {
+    position: relative;
+    z-index: 10000; /* above overlay */
+    pointer-events: auto; /* clickable */
+    filter: brightness(1.5);
+  }
+
+
+
+</style>
+
+</head>
+<body>
+
+<!-- MAIN PLAY AREA -->
+<div id="playarea">
+  <div id="placemat"></div>
+</div>
+
+<div id="playerarea">
+  <!-- TILE RACK -->
+  <div id="tile-rack"></div>
+
+  <div id="cardSelector">
+    <div class="dropdowns">
+      <select id="numberDropdown">
+        <option value="" disabled selected hidden>Month</option>
+        <option value="1">ניסן</option>
+        <option value="2">אייר</option>
+        <option value="3">סיון</option>
+        <option value="4">תמוז</option>
+        <option value="5">אב</option>
+        <option value="6">אלול</option>
+        <option value="7">תשרי</option>
+        <option value="8">חשון</option>
+        <option value="9">כסלו</option>
+        <option value="10">טבת</option>
+        <option value="11">שבט</option>
+        <option value="12">אדר</option>
+        <option value="13">'אדר ב</option>
+      </select>
+      
+      <select id="colorDropdown">
+        <option value="" disabled selected hidden>Color</option>
+        <option value="RED">RED</option>
+        <option value="BLUE">BLUE</option>
+        <option value="BLACK">BLACK</option>
+        <option value="GREEN">GREEN</option>
+      </select>
+      
+    </div>
+
+    <div id='outputCell'>
+      <!-- error messages or images will go here -->
+    </div>
+  </div>
+
+  <div id="buttonarea">
+    <button id="setverifybtn">Confirm Placement</button>
+    <button id="tilesltn">Tile Solve</button>
+    <button id="reset">Clear Table</button>
+  </div>
+
+</div>
+
+<script src="scripts/placematgridsetup.js"></script>
+<script src="scripts/racksetup.js"></script>
+<script src="scripts/tileevents.js"></script>
+<script src="scripts/tilecreation.js"></script>
+<script src="scripts/verifysets.js"></script>
+<div id="overlay"></div>
+
+
+<script>
+
+  buildGrid();
+  buildRack();
+  setupDragAndDrop();
+
+
+  document.getElementById("tilesltn").addEventListener("click", () => tileSolverButtonHandler());
+
+  async function tileSolverButtonHandler(){
+    const overlay = document.getElementById("overlay");
+    overlay.classList.toggle("choosetile");
+    document.body.classList.toggle("choosetile");
+
+    if (overlay.classList.contains("choosetile")){
+      const badtiles = await validateSets(); //in verifysets.js
+      if (badtiles.length > 0){
+        displaySetValidationResults(badtiles, false); //in verifysets.js
+        overlay.classList.toggle("choosetile");
+        document.body.classList.toggle("choosetile");
+      }
+      else {
+        document.querySelectorAll(".rack-cell .tile-img").forEach(i => {
+          i.addEventListener("click", chooseTile);
+        });
+      }
+    }
+  }
+
+  async function chooseTile(e) {
+    const i = e.currentTarget;
+    console.log(i);
+    const attributes = i.id.split("-");
+    const tileToGetRidOf = { "number": parseInt(attributes[0]), "color": parseInt(attributes[1]), "dupNum": parseInt(attributes[2]), "joker": false }; // *joker
+    overlay.classList.toggle("choosetile");
+    document.body.classList.toggle("choosetile");
+    removeTileChooser();
+    const newSets = await tileSolve(tileToGetRidOf);
+    configureNewSets(newSets);
+  }
+
+  function removeTileChooser(){
+    document.querySelectorAll(".rack-cell .tile-img").forEach(i => {
+      i.removeEventListener('click', chooseTile);
+    });
+  }
+
+  async function configureNewSets(newSets){
+    for (const newSet of newSets){
+      newSet.reverse();      
+      const spc = findCellWithLargestSpaceAhead();
+      let i = spc["start"];
+      const length = spc["length"];
+      if (newSet.length > length) console.log("the set doesn't have space to be placed. YIKES!");
+
+      for (const tile of newSet){
+        const imgId = tile["number"] + "-" + tile["color"] + "-" + tile["dupNum"];
+        const img = document.getElementById(imgId);
+        const cell = Array.from(document.querySelectorAll(".placemat-cell"))[i];
+        i++;
+        animateTileMove(img, cell);
+        await sleep(1000);
+      }
+      checkAndExpandGrid(); //defined in placematgrid.js
+      await sleep(100);
+    }
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function findCellWithLargestSpaceAhead(){
+    const cells = Array.from(document.querySelectorAll('.placemat-cell'));
+
+    let startIndexOfLongestSpace = 0;
+    let longestSpace = 0;
+    let startOfCurrentSpace = 0;
+    let currentSpace = 0;
+
+    for (let i = 0; i < cells.length; i++){
+      if (cells[i].querySelector("img") || i % columns === 0) { //columns is defined in placematgridsetup.js
+        if (currentSpace > longestSpace){
+          startIndexOfLongestSpace = startOfCurrentSpace;
+          longestSpace = currentSpace;
+        }        
+        startOfCurrentSpace = cells[i].querySelector("img")? i + 1: i;
+        currentSpace = cells[i].querySelector("img")? 0: 1;
+      }
+      else {
+        currentSpace++;
+      }
+    }
+    if (currentSpace > longestSpace){
+      startIndexOfLongestSpace = startOfCurrentSpace;
+      longestSpace = currentSpace;
+    }  
+
+    if (startIndexOfLongestSpace % columns !== 0 && (cells[startIndexOfLongestSpace - 1].querySelector("img"))){
+      startIndexOfLongestSpace += 1;
+    }
+
+
+    return {"start": startIndexOfLongestSpace, "length": longestSpace};
+  }
+
+  async function tileSolve(tileToGetRidOf) {
+    const board = getPlacematSets(); //functioned defined in verifysets.js
+    const rack = getRack();
+    const requestObject = {"board": board, "rack": rack, "tileToGetRidOf": tileToGetRidOf}
+
+    console.log(JSON.stringify(requestObject));
+
+    try {
+      //replace with actual backend endpoint
+      const response = await fetch("http://the-backend-endpoint/api/tilesolver", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestObject)
+      });
+
+      const result = await response.json();
+      return result["newSets"];
+
+    } 
+    catch (error) {
+        console.error("Error:", error);
+    } 
+    finally {
+    }
+
+  }
+
+
+  function getRack(){
+    const rackCells = Array.from(document.querySelectorAll('.rack-cell'));
+
+    const rack = [];
+    rackCells.forEach(c => {
+      const img = c.querySelector("img");
+      if (img) {
+        let id = img.id;
+        const attributes = id.split("-");
+        rack.push({ "number": parseInt(attributes[0]), "color": parseInt(attributes[1]), "dupNum": parseInt(attributes[2]), "joker": false }); // *joker
+      }
+    });
+
+    return rack;
+  }
+
+function animateTileMove(img, targetCell) {
+  const imgRect = img.getBoundingClientRect();
+  const targetRect = targetCell.getBoundingClientRect();
+
+  // Clone image
+  const clone = img.cloneNode(true);
+  clone.style.position = 'fixed';
+  clone.style.left = imgRect.left + 'px';
+  clone.style.top = imgRect.top + 'px';
+  clone.style.width = imgRect.width + 'px';
+  clone.style.height = imgRect.height + 'px';
+  clone.style.transition = 'all 1s ease';
+  clone.style.zIndex = 10000;
+  document.body.appendChild(clone);
+
+  img.style.visibility = 'hidden';
+
+  // Force reflow so transition will apply
+  clone.getBoundingClientRect();
+
+  // Move clone to target position
+  clone.style.left = targetRect.left + 'px';
+  clone.style.top = targetRect.top + 'px';
+  clone.style.width = targetRect.width + 'px';
+  clone.style.height = targetRect.height + 'px';
+
+  // After animation completes, move real image and remove clone
+  clone.addEventListener('transitionend', () => {
+    targetCell.appendChild(img);
+    img.style.visibility = 'visible';
+    document.body.removeChild(clone);
+  }, { once: true });
+}
+
+
+
+</script>
+
+
+</body>
+</html>

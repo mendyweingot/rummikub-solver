@@ -1,0 +1,49 @@
+
+
+  #cardSelector {
+    height: 27vh;
+    width: 10vw;
+    margin: 1%;
+    border: 2px solid darkgray;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5vh;
+    box-sizing: border-box;
+    color: white;
+    background-image: url('../images/rack.png'); /* placemat image */
+    background-size: cover; /* make it fit nicely */
+    background-repeat: no-repeat; /* no repeat */
+    background-position: center; /* center image */
+  }
+
+  .dropdowns select {
+    width: 48%;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    color: black;
+    outline: none;
+    background-image: url('../images/rack.png'); /* placemat image */
+    background-size: cover; /* make it fit nicely */
+    background-repeat: no-repeat; /* no repeat */
+    background-position: center; /* center image */
+    overflow: hidden;
+  }
+
+  #outputCell {
+    flex-grow: 1;
+    width: 100%;
+    margin-top: 0.5vh;
+    border-radius: 5px;
+    border: 1px solid gray;
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: lightgray;
+    font-size: 0.9em;
+    overflow: hidden;
+  }

@@ -1,0 +1,89 @@
+ /* ===== GENERAL PAGE STYLING ===== */
+  body {
+    margin: 0; /* remove default margin */
+    height: 100vh; /* full viewport height */
+    background-image: url('../images/wood.jpg'); /* background of entire window */
+    background-size: cover; /* stretch to cover window */
+    background-repeat: no-repeat; /* no tiling */
+  }
+
+  #playarea {
+    display: flex; /* use flex to center content vertically */
+    flex-direction: column; /* stack vertically */
+    align-items: center; /* center horizontally */
+    justify-content: flex-start; /* start from top */
+  }
+
+  #playerarea {
+    display: flex;
+    gap: 1vw; /* spacing between divs */
+  }
+
+
+  /* ===== PLACEMAT (main grid area) ===== */
+  #placemat {
+    width: 90%; /* occupy 90% of playarea width */
+    height: 66vh; /* about 2/3 of the playarea height */
+    margin-top: 3vh; /* space from top */
+    background-image: url('../images/placemat.png'); /* placemat image */
+    background-size: cover; /* make it fit nicely */
+    background-repeat: no-repeat; /* no repeat */
+    background-position: center; /* center image */
+    border-radius: 20px; /* rounded corners */
+    display: grid; /* grid layout for cells */
+    gap: 1vh 1vh; /* vertical space between rows, none between columns */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* subtle shadow */
+    overflow: hidden; /* ensure rows never go outside */
+    justify-content: center;
+    align-content: center;
+  }
+
+  /* ===== CELLS ===== */
+  .placemat-cell {
+    position: relative; /* so we can easily place children inside */
+    display: flex; /* so we can center tiles */
+    align-items: center; /* vertical center */
+    justify-content: center; /* horizontal center */
+    border: none; /* invisible borders */
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .grid-cell.drag-over {
+    background-color: rgba(0, 255, 0, 0.2); /* light green highlight */
+    border-radius: 6px; /* soft edges */
+  }
+
+
+  /*for when tiles are not in a good set. to highlight it red */
+  .placemat-cell.highlightr::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 0, 0, 0.5); /* semi-transparent red */
+    border-radius: 4px; /* optional, match your tiles if rounded */
+    pointer-events: none; /* lets drag/drop still work */
+    animation: fadeOut 10s ease-out forwards;
+  }
+
+  .placemat-cell.highlightg::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 255, 0, 0.5); /* semi-transparent red */
+    border-radius: 4px; /* optional, match your tiles if rounded */
+    pointer-events: none; /* lets drag/drop still work */
+    animation: fadeOut 10s ease-out forwards;
+  }
+  
+  @keyframes fadeOut {
+    from   { opacity: 1; }   /* fully visible */
+    to  { opacity: 0; }   /* fade out near the end */
+  }
+  

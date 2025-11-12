@@ -1,0 +1,36 @@
+
+
+  /* ===== TILE RACK ===== */
+  #tile-rack {
+    border: 2px solid darkgray;
+    border-radius: 10px;
+    width: 66%; /* occupy 90% of window width */
+    height: 27vh; /* about 2/3 of the viewport height */
+    margin-top: 1%; /* space from top */
+    margin-left: 5%;
+    background-image: url('../images/rack.png'); /* placemat image */
+    background-size: cover; /* make it fit nicely */
+    background-repeat: no-repeat; /* no repeat */
+    background-position: center; /* center image */
+    display: grid; /* grid layout for cells */
+    gap: 1vh 2vh; /* vertical space between rows, none between columns */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* subtle shadow */
+    overflow: hidden; /* ensure rows never go outside */
+    user-select: none;
+
+  }
+
+  .rack-cell {
+    position: relative; /* so we can easily place children inside */
+    display: flex; /* so we can center tiles */
+    align-items: center; /* vertical center */
+    justify-content: center; /* horizontal center */
+    border: none; /* invisible borders */
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .rack-cell.drag-over {
+    background-color: rgba(0, 255, 0, 0.2); /* light green highlight */
+    border-radius: 6px; /* soft edges */
+  }
