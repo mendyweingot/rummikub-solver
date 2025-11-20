@@ -55,4 +55,4 @@ Locations to update:
 
 ## Demo
 
-[Watch the demo (MP4)](images/demo.mp4)
+[Watch the demo (MP4)](frontend/rummi/images/demo.mp4)
